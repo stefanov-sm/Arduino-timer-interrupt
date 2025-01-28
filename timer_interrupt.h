@@ -20,7 +20,7 @@
   TCCR1B |= (1<<CS11);                   \
   TIMSK1 |= (1<<OCIE1A);                 \
   interrupts()
-#elif TIMER_INTERRUPT_MS <= 261
+#elif TIMER_INTERRUPT_MS <= 262
   #pragma message("Prescaler = 64")
   #define INIT_TIMER_INTERRUPT            \
   noInterrupts();                         \
