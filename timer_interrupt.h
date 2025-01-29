@@ -2,74 +2,37 @@
 #define __TIMER_INTERRUPT_H
 
 // =============================================================================
+#ifdef DEBUG
   #define debug_init     {Serial.begin(38400); while(!Serial);}
-  #define debug_echo(X)  Serial.write(X)
-  #define EOL            "\r\n"
+  #define debug_echo(X)  Serial.println(X)
+#endif  
 // =============================================================================
-#if !defined(TIMER_INTERRUPT_MS)
-  #error TIMER_INTERRUPT_MS must be defined first
-#endif
 
-#if TIMER_INTERRUPT_MS <= 32
-  #pragma message("Prescaler = 8")
-  #define INIT_TIMER_INTERRUPT           \
-  noInterrupts();                        \
-  TCCR1A = 0; TCCR1B = 0; TCNT1 = 0;     \
-  OCR1A = 16000L*TIMER_INTERRUPT_MS/8-1; \
-  TCCR1B |= (1<<WGM12);                  \
-  TCCR1B |= (1<<CS11);                   \
-  TIMSK1 |= (1<<OCIE1A);                 \
-  interrupts()
-#elif TIMER_INTERRUPT_MS <= 262
-  #pragma message("Prescaler = 64")
-  #define INIT_TIMER_INTERRUPT            \
-  noInterrupts();                         \
-  TCCR1A = 0; TCCR1B = 0; TCNT1 = 0;      \
-  OCR1A = 16000L*TIMER_INTERRUPT_MS/64-1; \
-  TCCR1B |= (1<<WGM12);                   \
-  TCCR1B |= (1<<CS10 | (1<<CS11);         \
-  TIMSK1 |= (1<<OCIE1A);                  \
-  interrupts()
-#elif TIMER_INTERRUPT_MS <= 1048
-  #pragma message("Prescaler = 256")
-  #define INIT_TIMER_INTERRUPT             \
-  noInterrupts();                          \
-  TCCR1A = 0; TCCR1B = 0; TCNT1 = 0;       \
-  OCR1A = 16000L*TIMER_INTERRUPT_MS/256-1; \
-  TCCR1B |= (1<<WGM12);                    \
-  TCCR1B |= (1<<CS12);                     \
-  TIMSK1 |= (1<<OCIE1A);                   \
-  interrupts()
-#elif TIMER_INTERRUPT_MS < 4194 
-  #pragma message("Prescaler = 1024")
-  #define INIT_TIMER_INTERRUPT              \
-  noInterrupts();                           \
-  TCCR1A = 0; TCCR1B = 0; TCNT1 = 0;        \
-  OCR1A = 16000L*TIMER_INTERRUPT_MS/1024-1; \
-  TCCR1B |= (1<<WGM12);                     \
-  TCCR1B |= (1<<CS12) | (1<<CS10);          \
-  TIMSK1 |= (1<<OCIE1A);                    \
-  interrupts()
-#else
-  #error Time interrupt interval can be 4193 ms max
-#endif
+#define INIT_TIMER_INTERRUPT(MS) \
+static_assert(MS < 4194, "Timer: Max 4194 milliseconds supported"); \
+init_timer_interrupt(MS);
 
-#define SET_TIMER_ISR(X) \
-ISR(TIMER1_COMPA_vect) X
+void init_timer_interrupt(unsigned int ms)
+{
+  unsigned int prescaler;
+  byte prescaler_bits;
+  
+  if      (ms <=   32) {prescaler = 8;    prescaler_bits = (1<<CS11);}
+  else if (ms <=  262) {prescaler = 64;   prescaler_bits = (1<<CS10)|(1<<CS11);}
+  else if (ms <= 1048) {prescaler = 256;  prescaler_bits = (1<<CS12);}
+  else /* ms < 4194 */ {prescaler = 1024; prescaler_bits = (1<<CS10)|(1<<CS12);};
+  
+  noInterrupts();
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1 = 0;
+  OCR1A = 16000L * ms / prescaler - 1;
+  TCCR1B |= (1<<WGM12);
+  TCCR1B |= prescaler_bits;
+  TIMSK1 |= (1<<OCIE1A);
+  interrupts();
+}
+
+#define SET_TIMER_ISR(X) ISR(TIMER1_COMPA_vect) X
 
 #endif
-
-// =============================================================================
-//  noInterrupts();
-//  TCCR1A = 0;  // set entire TCCR1A register to 0
-//  TCCR1B = 0;  // same for TCCR1B
-//  TCNT1  = 0;  // initialize counter value to 0
-//
-//  // set compare match register for TIMER_INTERVAL increments (clock_frequency * (period_in_ms / 1000) / prescale)
-//  OCR1A = 16000000 * (TIMER_INTERVAL / 1000) / TIMER_PRESCALE - 1;
-//
-//  TCCR1B |= (1 << WGM12);               // turn on CTC mode
-//  TCCR1B |= (1 << CS12) | (1 << CS10);  // set CS10 and CS12 bits for TIMER_PRESCALE = 1024
-//  TIMSK1 |= (1 << OCIE1A);              // enable timer compare interrupt
-//  interrupts();
-// =============================================================================
