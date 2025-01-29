@@ -9,7 +9,7 @@
 // =============================================================================
 
 #define INIT_TIMER_INTERRUPT(MS) \
-static_assert(MS < 4194, "Timer: Max 4194 milliseconds supported"); \
+static_assert(MS < 4194, "Timer: Max 4193 milliseconds supported"); \
 init_timer_interrupt(MS);
 
 void init_timer_interrupt(unsigned int ms)
