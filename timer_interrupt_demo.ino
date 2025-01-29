@@ -1,9 +1,12 @@
 #define PROXIMITY_A_SENSOR 2
 #define PROXIMITY_B_SENSOR 3
 #define REGISTRATION_GATE  8
+// =============================================================================
+#define TIMER_INTERRUPT_MS 10
+#define NREADINGS           5
+#include "timer_interrupt.h"
 
 // =============================================================================
-#define NREADINGS          5
 class sensor
 {
   private:
@@ -24,9 +27,9 @@ class sensor
 
   void update(void) // to be invoked by a timer ISR
   {
-    // Sensor status (item present is LOW)
     byte readings, i;
 
+    // Sensor status: item present is LOW
     (this->readings_list)[this->readings_list_position++] = (digitalRead(this->sensor_pin) == LOW);
     if (this->readings_list_position >= NREADINGS) this->readings_list_position = 0;
 
@@ -39,7 +42,7 @@ class sensor
         this->running_value = false; break;
       case NREADINGS:
         this->running_value = true; break;
-      default: return; // flickering, inconclusive
+      default: return; // flickering and hesitating, inconclusive
     }  
   }
 
@@ -58,9 +61,6 @@ class sensor
 sensor sensor_A = sensor(PROXIMITY_A_SENSOR);
 sensor sensor_B = sensor(PROXIMITY_B_SENSOR);
 
-#define TIMER_INTERRUPT_MS 10
-#include "timer_interrupt.h"
-
 SET_TIMER_ISR({
   sensor_A.update(); 
   sensor_B.update(); 
@@ -73,7 +73,7 @@ void setup()
   pinMode(PROXIMITY_B_SENSOR, INPUT);
   pinMode(REGISTRATION_GATE, OUTPUT);
 
-  INIT_TIMER_INTERRUPT;
+  INIT_TIMER_INTERRUPT(TIMER_INTERRUPT_MS);
 }
 
 void loop()
