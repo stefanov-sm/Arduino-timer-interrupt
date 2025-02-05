@@ -1,13 +1,13 @@
 ## Arduino timer interrupt
 Frugal **`Timer1`** interrupt support for Arduino R3 NANO and R3 UNO
 > [!IMPORTANT]  
-> Maximum interval between interrupts is **4193 ms**  
-> Note the use of `static` variables in the slow job example below
+> Maximum interval between interrupts is **4193 ms**
 
 The `timer_interrupt_demo.ino` example is a sensor control that uses interrupts and keeps the previous (`true` or `false`) reading while hesitating/flickering and only changes it when stable.
-
 ### Usage
 Timer interrupt occurs every 10 ms in the example below
+> [!TIP]  
+> Note the use of `static` variables for the slow job
 ```C++
 #include "timer_interrupt.h"
 
