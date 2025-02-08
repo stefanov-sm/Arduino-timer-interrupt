@@ -13,6 +13,6 @@ _____
    
 Use `(1<<CS11)` for **prescaler = 8**, `(1<<CS10)|(1<<CS11)` **for prescaler = 64**, `(1<<CS12)` for **prescaler = 256** as shown above  
 _____  
- - Set **OCIE1A** bit of register **TIMSK1** to enable **Timer1** _Timer Compare Interrupt_  
+ - Set **OCIE1A** bit of register **TIMSK1** to enable **Timer1** TCI (_Timer Compare Interrupt_)  
  `TIMSK1 |= (1 << OCIE1A);`
 _____  
